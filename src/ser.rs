@@ -14,7 +14,7 @@ use ryu;
 /// A structure for serializing Rust values into JSON.
 pub struct Serializer<W, F = CompactFormatter> {
     pub writer: W,
-    formatter: F,
+    pub formatter: F,
 }
 
 impl<W> Serializer<W>
