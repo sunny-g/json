@@ -848,8 +848,8 @@ where
     }
 }
 
-struct MapKeySerializer<'a, W: 'a, F: 'a> {
-    ser: &'a mut Serializer<W, F>,
+pub struct MapKeySerializer<'a, W: 'a, F: 'a> {
+    pub ser: &'a mut Serializer<W, F>,
 }
 
 #[cfg(feature = "arbitrary_precision")]
