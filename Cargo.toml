@@ -1,6 +1,6 @@
 [package]
 name = "serde_json"
-version = "1.0.40" # remember to update html_root_url
+version = "1.0.42" # remember to update html_root_url
 authors = ["Erick Tryzelaar <erick.tryzelaar@gmail.com>", "David Tolnay <dtolnay@gmail.com>"]
 license = "MIT OR Apache-2.0"
 description = "A JSON serialization file format"
@@ -23,11 +23,14 @@ ryu = "1.0"
 
 [dev-dependencies]
 automod = "0.1"
-rustversion = "0.1"
+rustversion = "1.0"
 serde_bytes = "0.11"
 serde_derive = "1.0"
 serde_stacker = "0.1"
 trybuild = "1.0"
+
+[workspace]
+members = ["tests/crate"]
 
 [package.metadata.docs.rs]
 features = ["raw_value", "unbounded_depth"]

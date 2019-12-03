@@ -291,12 +291,15 @@
 //! [macro]: https://docs.serde.rs/serde_json/macro.json.html
 //! [`serde-json-core`]: https://japaric.github.io/serde-json-core/serde_json_core/
 
-#![doc(html_root_url = "https://docs.rs/serde_json/1.0.40")]
+#![doc(html_root_url = "https://docs.rs/serde_json/1.0.42")]
 #![allow(unknown_lints, bare_trait_objects, ellipsis_inclusive_range_patterns)]
 #![cfg_attr(feature = "cargo-clippy", allow(renamed_and_removed_lints))]
 #![cfg_attr(feature = "cargo-clippy", deny(clippy, clippy_pedantic))]
 // Ignored clippy lints
-#![cfg_attr(feature = "cargo-clippy", allow(deprecated_cfg_attr, doc_markdown))]
+#![cfg_attr(
+    feature = "cargo-clippy",
+    allow(deprecated_cfg_attr, doc_markdown, needless_doctest_main)
+)]
 // Ignored clippy_pedantic lints
 #![cfg_attr(feature = "cargo-clippy", allow(
     // Deserializer::from_str, into_iter
@@ -312,11 +315,14 @@
     module_name_repetitions,
     shadow_unrelated,
     single_match_else,
+    too_many_lines,
     use_self,
     zero_prefixed_literal,
     // we support older compilers
     checked_conversions,
     redundant_field_names,
+    // noisy
+    must_use_candidate,
 ))]
 #![deny(missing_docs)]
 

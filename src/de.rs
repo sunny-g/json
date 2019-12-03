@@ -68,6 +68,10 @@ where
     R: io::Read,
 {
     /// Creates a JSON deserializer from an `io::Read`.
+    ///
+    /// Reader-based deserializers do not support deserializing borrowed types
+    /// like `&str`, since the `std::io::Read` trait has no non-copying methods
+    /// -- everything it does involves copying bytes out of the data source.
     pub fn from_reader(reader: R) -> Self {
         Deserializer::new(read::IoRead::new(reader))
     }
@@ -646,7 +650,7 @@ impl<'de, R: Read<'de>> Deserializer<R> {
                 buf.push(b as char);
                 Ok(b)
             }
-            None => Err(self.error(ErrorCode::EofWhileParsingValue))
+            None => Err(self.error(ErrorCode::EofWhileParsingValue)),
         }
     }
 
@@ -1377,9 +1381,7 @@ impl<'de, 'a, R: Read<'de>> de::Deserializer<'de> for &'a mut Deserializer<R> {
     ///     Ok(())
     /// }
     /// #
-    /// # fn main() {
-    /// #     look_at_bytes().unwrap();
-    /// # }
+    /// # look_at_bytes().unwrap();
     /// ```
     ///
     /// Backslash escape sequences like `\n` are still interpreted and required
@@ -1399,9 +1401,7 @@ impl<'de, 'a, R: Read<'de>> de::Deserializer<'de> for &'a mut Deserializer<R> {
     ///     assert_eq!(expected_msg, parsed.unwrap_err().to_string());
     /// }
     /// #
-    /// # fn main() {
-    /// #     look_at_bytes();
-    /// # }
+    /// # look_at_bytes();
     /// ```
     fn deserialize_bytes<V>(self, visitor: V) -> Result<V::Value>
     where
@@ -2193,6 +2193,11 @@ where
 /// as a [`File`], you will want to apply your own buffering because serde_json
 /// will not buffer the input. See [`std::io::BufReader`].
 ///
+/// It is expected that the input stream ends after the deserialized object.
+/// If the stream does not end, such as in the case of a persistent socket connection,
+/// this function will not return. It is possible instead to deserialize from a prefix of an input
+/// stream without looking for EOF by managing your own [`Deserializer`].
+///
 /// Note that counter to intuition, this function is usually slower than
 /// reading a file completely into memory and then applying [`from_str`]
 /// or [`from_slice`] on it. See [issue #160].
@@ -2204,6 +2209,8 @@ where
 /// [issue #160]: https://github.com/serde-rs/json/issues/160
 ///
 /// # Example
+///
+/// Reading the contents of a file.
 ///
 /// ```edition2018
 /// use serde::Deserialize;
@@ -2236,6 +2243,38 @@ where
 /// # fn fake_main() {
 ///     let u = read_user_from_file("test.json").unwrap();
 ///     println!("{:#?}", u);
+/// }
+/// ```
+///
+/// Reading from a persistent socket connection.
+///
+/// ```edition2018
+/// use serde::Deserialize;
+///
+/// use std::error::Error;
+/// use std::net::{TcpListener, TcpStream};
+///
+/// #[derive(Deserialize, Debug)]
+/// struct User {
+///     fingerprint: String,
+///     location: String,
+/// }
+///
+/// fn read_user_from_stream(tcp_stream: TcpStream) -> Result<User, Box<dyn Error>> {
+///     let mut de = serde_json::Deserializer::from_reader(tcp_stream);
+///     let u = User::deserialize(&mut de)?;
+///
+///     Ok(u)
+/// }
+///
+/// fn main() {
+/// # }
+/// # fn fake_main() {
+///     let listener = TcpListener::bind("127.0.0.1:4000").unwrap();
+///
+///     for stream in listener.incoming() {
+///         println!("{:#?}", read_user_from_stream(stream.unwrap()));
+///     }
 /// }
 /// ```
 ///
